@@ -2,26 +2,37 @@
 from PIL import Image
 
 #Constants
-Af_tr_images = 510
-As_tr_images = 510
-
 newSize = 50
 
 def cropImages():
     print("Cropping images ...")
-    for number in range(1, Af_tr_images + 1):
+    for number in range(1, 421):
         print("Opening Af tr image: " + str(number))
-        im = Image.open("dataset/train/African/af_tr" + str(number) + ".jpg")
+        im = Image.open("Dataset/Train/African/af_tr" + str(number) + ".jpg")
 
         resized_image = im.resize((newSize, newSize))
-        resized_image.convert('RGB').save("dataset/train/Resized_Images/African/African_" + str(number) + ".jpg")
+        resized_image.convert('RGB').save("Dataset/Train/Resized_Images/African/African_" + str(number) + ".jpg")
+
+    for number in range(1, 91):
+        print("Opening Af te image: " + str(number))
+        im = Image.open("Dataset/Train/African/Af_te" + str(number) + ".jpg")
+
+        resized_image = im.resize((newSize, newSize))
+        resized_image.convert('RGB').save("Dataset/Train/Resized_Images/African/African_" + str(number + 420) + ".jpg")
+	
+	for number in range(1, 421):
+        print("Opening As tr image: " + str(number))
+        im = Image.open("Dataset/Train/Asian/As_tr" + str(number) + ".jpg")
+
+        resized_image = im.resize((newSize, newSize))
+        resized_image.convert('RGB').save("Dataset/Train/Resized_Images/Asian/Asian_" + str(number) + ".jpg")
 
     for number in range(1, As_tr_images + 1):
-        print("Opening As tr image: " + str(number))
-        im = Image.open("dataset/train/Asian/as_tr" + str(number) + ".jpg")
+        print("Opening As te image: " + str(number))
+        im = Image.open("Dataset/Train/Asian/As_te" + str(number) + ".jpg")
 
         resized_image = im.resize((newSize, newSize))
-        resized_image.convert('RGB').save("dataset/test/Resized_Images/Asian/Asian_" + str(number) + ".jpg")
+        resized_image.convert('RGB').save("Dataset/Train/Resized_Images/Asian/Asian_" + str(number + 420) + ".jpg")
 
     print("Images cropped!");
 

@@ -3,10 +3,11 @@ from PIL import Image
 import imageio as iio
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 
 # Constants
 newSize = 50
-train_images = 450
+train_images = 900
 input_layer_size = newSize * newSize * 3
 hidden_layer_size = 25
 output_layer_size = 1
@@ -43,6 +44,23 @@ def cropimages():
 		resized_image.convert('RGB').save("Dataset/Train/Resized_Images/Asian/Asian_" + str(number + 420) + ".jpg")
 
 	print("Images cropped!");
+
+def mirrorImages():
+	print("Mirroring images ...")
+
+	#Rotate African images to get more training data
+	for number in range(1, train_images):
+		image = Image.open("Dataset/Train/Resized_Images/African/African_" + str(number) + ".jpg")
+		rotated_image = image.transpose(Image.FLIP_LEFT_RIGHT)
+		rotated_image.save("Dataset/Train/Resized_Images/African/African_" + str(number + train_images) + ".jpg")
+
+	#Rotate Asian images to get more training data
+	for number in range(1, train_images):
+		image = Image.open("Dataset/Train/Resized_Images/Asian/Asian_" + str(number) + ".jpg")
+		rotated_image = image.transpose(Image.FLIP_LEFT_RIGHT)
+		rotated_image.save("Dataset/Train/Resized_Images/Asian/Asian_" + str(number + train_images) + ".jpg")
+
+	print("Images mirrored!")
 
 def loadimages():
 	print("Loading images ...")
@@ -188,8 +206,9 @@ def own_Image(my_image, info):
 
 if __name__ == '__main__':
 
-	#Crop the images
+	#Preproces the images
 	#cropimages()
+	#mirrorImages()
 
 	#Load the images into lists
 	train_set_x, train_set_y = loadimages()
@@ -216,10 +235,18 @@ if __name__ == '__main__':
 	#Train the model
 	info = model(train_set_x, train_set_y, 10000, 0.005)
 
+	#Plot costs
+	costs = np.squeeze(info['costs'])
+	plt.plot(costs)
+	plt.ylabel('Cost')
+	plt.xlabel('Iterations (per hundreds)')
+	plt.title("Learning rate =" + str(0.005))
+	plt.show()
+
 	#Test an image
 	africans = 0
 	asians = 0
-	for number in range(451, 511):
+	for number in range(901, 1001):
 		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images/African/African_' + str(number) + '.jpg', info)
 		if result == 1:
 			africans = africans + 1
@@ -227,5 +254,5 @@ if __name__ == '__main__':
 			asians = asians + 1
 
 	print("Africans: " + str(africans) + ", Asians: " + str(asians))
-	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi : " + str(round(asians/(asians+africans), 2)))
+	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
 

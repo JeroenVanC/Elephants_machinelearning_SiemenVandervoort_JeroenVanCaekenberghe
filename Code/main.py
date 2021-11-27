@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Constants
 newSize = 50
-train_images = 900
+train_images = 800
 input_layer_size = newSize * newSize * 3
 hidden_layer_size = 25
 output_layer_size = 1
@@ -103,6 +103,8 @@ def propagation(w, b, x, y):
 
 	#Forward propagation to find the cost
 	A = sigmoid(np.dot(w.T, x) + b)       # compute activation
+	#A = sigmoid(np.dot(w.T, x))       # compute activation
+
 	cost = -1/m * np.sum(y*np.log(A) + (1 - y)*np.log(1 - A))  # compute cost
 
 	#Backward propagation to find gradient
@@ -168,6 +170,7 @@ def predict(w, b, x):
 
 	# Compute vector "A" predicting the probabilities of an African elephant being present in the picture
 	A = sigmoid(np.dot(w.T, x) + b)
+	A = sigmoid(np.dot(w.T, x))
 
 	for i in range(A.shape[1]):
 		# Convert probabilities A[0,i] to actual predictions p[0,i]
@@ -233,7 +236,7 @@ if __name__ == '__main__':
 	train_set_x = train_set_x_flatten/255
 
 	#Train the model
-	info = model(train_set_x, train_set_y, 10000, 0.005)
+	info = model(train_set_x, train_set_y, 6000, 0.005)
 
 	#Plot costs
 	costs = np.squeeze(info['costs'])
@@ -246,7 +249,7 @@ if __name__ == '__main__':
 	#Test an image
 	africans = 0
 	asians = 0
-	for number in range(901, 1001):
+	for number in range(801, 901):
 		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images/African/African_' + str(number) + '.jpg', info)
 		if result == 1:
 			africans = africans + 1

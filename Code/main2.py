@@ -89,6 +89,12 @@ def nnCostFunction(nn_params,
     
     reg_term = (lambda_ / (2 * m)) * (np.sum(np.square(temp1[:, 1:])) + np.sum(np.square(temp2[:, 1:])))
     
+    minima = []
+    for teller in range(0, len(a3)-1):
+        minima.append(min(a3[teller]))
+    
+    print("Min a3: " + str(min(minima)))
+    
     J = (-1 / m) * np.sum((np.log(a3) * y_matrix) + np.log(1 - a3) * (1 - y_matrix)) + reg_term
     # Backpropogation
     
@@ -210,7 +216,7 @@ if __name__ == '__main__':
 
     #  After you have completed the assignment, change the maxiter to a larger
     #  value to see how more training helps.
-    options= {'maxiter': 100}
+    options= {'maxiter': 50}
 
     #  You should also try different values of lambda
     lambda_ = 1

@@ -1,12 +1,15 @@
 import numpy as np
 import random
+
+from numpy.core.numeric import count_nonzero
 import utils
 from scipy import optimize
 import imageio as iio
+#import pdb
 
 
-train_images = 400
-
+train_images = 50 # 400
+counter_cost = 0
 
 def loadimages():
     print("Loading images ...")
@@ -22,10 +25,11 @@ def loadimages():
 
     #Use a counter to iterate through the randomList
     counter = 0
-
+   # pdb.set_trace()
     # Load African images
     for number in range(1, train_images + 1):
-        Af_rgb = iio.imread("Dataset/Train/Resized_Images/African/African_" + str(number) + ".jpg")
+        
+        Af_rgb = iio.imread("Dataset\Train\Resized_Images\African\African_" + str(number) + ".jpg")
         train_set_x[randomList[counter]] = Af_rgb
         train_set_y[randomList[counter]] = 1.0
         counter = counter + 1
@@ -42,7 +46,6 @@ def loadimages():
     return train_set_x, train_set_y
 
 def sigmoid(z):
-    print('--- strat sigmoid function')
     return 1/(1+np.exp(-z))
 
 def nnCostFunction(nn_params,
@@ -50,6 +53,7 @@ def nnCostFunction(nn_params,
                    hidden_layer_size,
                    num_labels,
                    X, y, lambda_=0.0):
+    global counter_cost
     # Reshape nn_params back into the parameters Theta1 and Theta2, the weight matrices
     # for our 2 layer neural network
     Theta1 = np.reshape(nn_params[:hidden_layer_size * (input_layer_size + 1)],
@@ -60,43 +64,32 @@ def nnCostFunction(nn_params,
 
     # Setup some useful variables
     m = y.size
-    print("m: " + str(m))
-         
+
     # You need to return the following variables correctly 
     J = 0
     Theta1_grad = np.zeros(Theta1.shape)
     Theta2_grad = np.zeros(Theta2.shape)
-    print("x: " + str(X.shape))
-    # ====================== YOUR CODE HERE ======================
+
     a1 = np.concatenate([np.ones((m, 1)), X], axis=1)
 
-    print('a1: ' + str(a1.shape) + 'Th1: '+str((Theta1.T).shape))
-    print('test1')
-    
     a2 = sigmoid(a1.dot(Theta1.T))
-    print('a2: ' + str(a2))
     a2 = np.concatenate([np.ones((a2.shape[0], 1)), a2], axis=1)
-    print('test2')
     
-    a3 = utils.sigmoid(a2.dot(Theta2.T))
-    print('test3')
+    a3 = sigmoid(a2.dot(Theta2.T))
 
     
     y_matrix = y.reshape(-1)
+    y_matrix = y_matrix.astype(int)
     y_matrix = np.eye(num_labels)[y_matrix]
-    print('test4')
     
     temp1 = Theta1
     temp2 = Theta2
-    print('test5')
     
     # Add regularization term
     
     reg_term = (lambda_ / (2 * m)) * (np.sum(np.square(temp1[:, 1:])) + np.sum(np.square(temp2[:, 1:])))
     
     J = (-1 / m) * np.sum((np.log(a3) * y_matrix) + np.log(1 - a3) * (1 - y_matrix)) + reg_term
-    print('cost J : ' + str(J))
-    
     # Backpropogation
     
     delta_3 = a3 - y_matrix
@@ -129,6 +122,11 @@ def nnCostFunction(nn_params,
     # grad = np.concatenate([Theta1_grad.ravel(order=order), Theta2_grad.ravel(order=order)])
     grad = np.concatenate([Theta1_grad.ravel(), Theta2_grad.ravel()])
 
+#    print("|| It: " + str(counter_cost) + " || J: " + str(J) + " || grad: " +str(grad) + " ||")
+    print("|| It: " + str(counter_cost) + " || J: " + str(J) + " ||")
+
+    counter_cost = counter_cost + 1
+
     return J, grad
 
 def sigmoidGradient(z):
@@ -137,7 +135,7 @@ def sigmoidGradient(z):
 
     # ====================== YOUR CODE HERE ======================
 
-    g = utils.sigmoid(z) * (1 - utils.sigmoid(z))
+    g = sigmoid(z) * (1 - sigmoid(z))
 
     # =============================================================
     return g
@@ -172,10 +170,10 @@ def predict(Theta1, Theta2, X):
     # ====================== YOUR CODE HERE ======================
     X = np.concatenate([np.ones((m, 1)), X], axis=1)
     
-    a2 = utils.sigmoid(X.dot(Theta1.T))
+    a2 = sigmoid(X.dot(Theta1.T))
     a2 = np.concatenate([np.ones((a2.shape[0], 1)), a2], axis=1)
     
-    p = np.argmax(utils.sigmoid(a2.dot(Theta2.T)), axis = 1)
+    p = np.argmax(sigmoid(a2.dot(Theta2.T)), axis = 1)
 
     # =============================================================
     return p
@@ -183,14 +181,17 @@ def predict(Theta1, Theta2, X):
 if __name__ == '__main__':
 
     # Setup parameters you will use for this NN ---------------------
-    input_layer_size = 7500 #50x50 pixels for the input images
+    input_layer_size = 7500 #50x50 pixels for the input images * 3 for rgb value
     hidden_layer_size = 5000 # 2/3 input layer
-    num_labels = 1          # 1 label, african or asian
+    num_labels = 2          # 1 label, african or asian
     #----------------------------------------------------------------
     X, y = loadimages()
     X = np.array(X, dtype="object")
     y = np.array(y, dtype="object")
+    X = X.astype(float)
+    y = y.astype(float)
     X = X.reshape(X.shape[0], -1)
+    X = X /255
 
 
     # Initializing NEural Network Parameters ------------------------
@@ -219,6 +220,7 @@ if __name__ == '__main__':
                                             hidden_layer_size,
                                             num_labels, X, y, lambda_)
     print('costfunction done')
+    
     # Now, costFunction is a function that takes in only one argument
     # (the neural network parameters)
     res = optimize.minimize(costFunction,
@@ -233,9 +235,11 @@ if __name__ == '__main__':
     # Obtain Theta1 and Theta2 back from nn_params
     Theta1 = np.reshape(nn_params[:hidden_layer_size * (input_layer_size + 1)],
                         (hidden_layer_size, (input_layer_size + 1)))
+    Theta1 = Theta1.astype(float)
 
     Theta2 = np.reshape(nn_params[(hidden_layer_size * (input_layer_size + 1)):],
                         (num_labels, (hidden_layer_size + 1))) 
+    Theta2 = Theta2.astype(float)
 
     pred = utils.predict(Theta1, Theta2, X)
     print(str(pred))

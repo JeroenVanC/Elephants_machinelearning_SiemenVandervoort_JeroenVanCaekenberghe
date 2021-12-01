@@ -29,14 +29,14 @@ def loadimages():
     # Load African images
     for number in range(1, train_images + 1):
         
-        Af_rgb = iio.imread("Dataset\Train\Resized_Images\African\African_" + str(number) + ".jpg")
+        Af_rgb = iio.imread("Dataset\Train\Resized_Images_20_20\African\African_" + str(number) + ".jpg")
         train_set_x[randomList[counter]] = Af_rgb
         train_set_y[randomList[counter]] = 1.0
         counter = counter + 1
 
     # Load Asian images
     for number in range(1, train_images + 1):
-        As_rgb = iio.imread("Dataset/Train/Resized_Images/Asian/Asian_" + str(number) + ".jpg")
+        As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
         train_set_x[randomList[counter]] = As_rgb
         train_set_y[randomList[counter]] = 0.0
         counter = counter + 1
@@ -187,8 +187,8 @@ def predict(Theta1, Theta2, X):
 if __name__ == '__main__':
 
     # Setup parameters you will use for this NN ---------------------
-    input_layer_size = 7500 #50x50 pixels for the input images * 3 for rgb value
-    hidden_layer_size = 5000 # 2/3 input layer
+    input_layer_size = 1200 #50x50 pixels for the input images * 3 for rgb value
+    hidden_layer_size = 800 # 2/3 input layer
     num_labels = 2          # 1 label, african or asian
     #----------------------------------------------------------------
     X, y = loadimages()

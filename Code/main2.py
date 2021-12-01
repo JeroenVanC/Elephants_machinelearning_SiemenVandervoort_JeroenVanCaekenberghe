@@ -89,12 +89,6 @@ def nnCostFunction(nn_params,
     
     reg_term = (lambda_ / (2 * m)) * (np.sum(np.square(temp1[:, 1:])) + np.sum(np.square(temp2[:, 1:])))
     
-    minima = []
-    for teller in range(0, len(a3)-1):
-        minima.append(min(a3[teller]))
-    
-    print("Min a3: " + str(min(minima)))
-    
     J = (-1 / m) * np.sum((np.log(a3) * y_matrix) + np.log(1 - a3) * (1 - y_matrix)) + reg_term
     # Backpropogation
     
@@ -247,6 +241,33 @@ if __name__ == '__main__':
                         (num_labels, (hidden_layer_size + 1))) 
     Theta2 = Theta2.astype(float)
 
-    pred = utils.predict(Theta1, Theta2, X)
-    print(str(pred))
-    print('Training Set Accuracy: %f' % (np.mean(pred == y) * 100))
+    #Run nieuwe foto's:
+    x_test = []
+    for number in range(100, 201):
+        image_rgb = []
+        As_rgb = iio.imread('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg')
+        x_test.append(As_rgb)
+
+    x_test = np.array(x_test, dtype="object")
+    x_test = x_test.astype(float)
+    x_test = x_test.reshape(x_test.shape[0], -1)
+    x_test = x_test/255
+
+    prediction = utils.predict(Theta1, Theta2, x_test)
+    print(str(prediction))
+    print('Training Set Accuracy: %f' % (np.mean(prediction == y) * 100))
+
+    african = 0
+    asian = 0
+    for result in prediction:
+        if result == 1:
+            african = african + 1
+        else:
+            asian = asian + 1
+
+    print("Africans: " + str(african) + ", Asians: " + str(asian))
+    print("% Afr   : " + str(round(african/(african+asian), 2)) + ", % Asi: " + str(round(asian/(asian+african), 2)))
+
+
+
+

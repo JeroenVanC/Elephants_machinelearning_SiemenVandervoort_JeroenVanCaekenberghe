@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Constants
 newSize = 50
-train_images = 800
+train_images = 400
 input_layer_size = newSize * newSize * 3
 hidden_layer_size = 25
 output_layer_size = 1
@@ -79,14 +79,14 @@ def loadimages():
 
 	# Load African images
 	for number in range(1, train_images + 1):
-		Af_rgb = iio.imread("Dataset/Train/Resized_Images/African/African_" + str(number) + ".jpg")
-		train_set_x[randomList[counter]] = Af_rgb
-		train_set_y[randomList[counter]] = 1.0
-		counter = counter + 1
-
-	# Load Asian images
-	for number in range(1, train_images + 1):
-		As_rgb = iio.imread("Dataset/Train/Resized_Images/Asian/Asian_" + str(number) + ".jpg")
+		Af_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
+		train_set_x[randomList[counter]] = Af_rgb        
+		train_set_y[randomList[counter]] = 1.0           
+		counter = counter + 1                            
+														 
+	# Load Asian images                                  
+	for number in range(1, train_images + 1):            
+		As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
 		train_set_x[randomList[counter]] = As_rgb
 		train_set_y[randomList[counter]] = 0.0
 		counter = counter + 1
@@ -236,21 +236,21 @@ if __name__ == '__main__':
 	train_set_x = train_set_x_flatten/255
 
 	#Train the model
-	info = model(train_set_x, train_set_y, 6000, 0.005)
+	info = model(train_set_x, train_set_y, 1000000, 0.005)
 
 	#Plot costs
 	costs = np.squeeze(info['costs'])
 	plt.plot(costs)
 	plt.ylabel('Cost')
 	plt.xlabel('Iterations (per hundreds)')
-	plt.title("Learning rate =" + str(0.005))
+	plt.title("Learning rate = " + str(0.005))
 	plt.show()
 
-	#Test an image
+	#Test African images
 	africans = 0
 	asians = 0
-	for number in range(801, 901):
-		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images/African/African_' + str(number) + '.jpg', info)
+	for number in range(401, 511):
+		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', info)
 		if result == 1:
 			africans = africans + 1
 		else:
@@ -259,3 +259,15 @@ if __name__ == '__main__':
 	print("Africans: " + str(africans) + ", Asians: " + str(asians))
 	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
 
+	#Test Asian images
+	africans = 0
+	asians = 0
+	for number in range(401, 511):
+		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', info)
+		if result == 1:
+			africans = africans + 1
+		else:
+			asians = asians + 1
+
+	print("Africans: " + str(africans) + ", Asians: " + str(asians))
+	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))

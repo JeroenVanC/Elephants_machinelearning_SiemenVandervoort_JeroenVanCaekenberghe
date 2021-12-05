@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 #Load the images
 def loadimages(train_images):
-	print("Loading images ...")
+	print("Loading " + str(train_images) + " images...")
 	train_set_x = []
 	train_set_y = []
 	for i in range(0, 2 * train_images):
@@ -35,7 +35,7 @@ def loadimages(train_images):
 		train_set_y[randomList[counter]] = 0.0
 		counter = counter + 1
 
-	print("Images loaded!")
+	print("	Images loaded!")
 
 	return train_set_x, train_set_y
 
@@ -160,10 +160,12 @@ def main(train_images, iterations):
 	train_set_y = np.array(train_set_y, dtype="object")
 
 	#Print some usefull parameters
+	print(" ")
 	print("Number of training examples...: " + str(len(train_set_y)))
 	print("Image chapes..................: " + str(train_set_x[0].shape))
 	print("Train_set_x shape.............: " + str(train_set_x.shape))
 	print("Train_set_y_shape.............: " + str(train_set_y.shape))
+	print(" ")
 
 	#Reshape the arrays
 	train_set_y = train_set_y.astype(float)

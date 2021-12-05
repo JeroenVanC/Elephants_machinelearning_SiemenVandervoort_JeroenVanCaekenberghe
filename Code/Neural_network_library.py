@@ -18,7 +18,7 @@ output_layer_size = 1
 elephant_labels = 2
 
 def loadimages(train_images):
-	print("Loading images ...")
+	print("Loading " + str(train_images) + " images...")
 	train_set_x = []
 	train_set_y = []
 	for i in range(0, 2 * train_images):
@@ -82,7 +82,7 @@ def loadTestset(start, end):
 	return africans, asians
 
 
-def main(train_images):
+def main(train_images, iterations):
 	#Load the images into lists
 	train_set_x, train_set_y = loadimages(train_images)
 
@@ -106,7 +106,7 @@ def main(train_images):
 
 	print("Train the model")
 	model = LogisticRegression(C=0.2, class_weight=None, dual=False, fit_intercept=True,
-                   intercept_scaling=1, l1_ratio=None, max_iter=5000,
+                   intercept_scaling=1, l1_ratio=None, max_iter=iterations,
                    multi_class='ovr', n_jobs=None, penalty='l2',
                    random_state=0, solver='liblinear', tol=0.0001, verbose=0,
                    warm_start=False)

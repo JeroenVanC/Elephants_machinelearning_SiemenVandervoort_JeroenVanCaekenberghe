@@ -21,7 +21,7 @@ def getInputText(number):
 	elif number == "5":
 		return "You choose to mirror images, I can't do it by myself..."
 	else:
-		return "Error with returning input text"
+		return "Error with returning input text!"
 
 #Start choosen algorithm
 def startAlgorithm(algorithm, train_images, iterations):
@@ -30,7 +30,7 @@ def startAlgorithm(algorithm, train_images, iterations):
 	elif algorithm == "2":
 		neunet.main(int(train_images))
 	elif algorithm == "3":
-		neunetlib.main(int(train_images))
+		neunetlib.main(int(train_images), int(iterations))
 	else:
 		print("Error with starting machine learning algorithm!")
 

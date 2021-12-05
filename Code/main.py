@@ -1,6 +1,7 @@
 #imports
 import Utils_nieuw as utils
 import os
+import sys
 
 if __name__ == '__main__':
 	#Clear the command window
@@ -28,7 +29,7 @@ if __name__ == '__main__':
 	print("                                                   ")
 
 	if option >= "1" and option <= "3":
-		print("B: Choose the amount of training images: ")
+		print("B: Choose the amount of training images for each class: ")
 		train_images = input()
 		print("C: Choose the amount of iterations: ")
 		iterations = input()

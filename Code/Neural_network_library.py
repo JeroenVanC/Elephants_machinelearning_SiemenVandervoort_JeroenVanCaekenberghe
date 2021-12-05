@@ -11,13 +11,13 @@ from sklearn.metrics import classification_report, confusion_matrix
 
 # Constants
 newSize = 50
-train_images = 400
+#train_images = 400
 input_layer_size = newSize * newSize * 3
 hidden_layer_size = 25
 output_layer_size = 1
 elephant_labels = 2
 
-def loadimages():
+def loadimages(train_images):
 	print("Loading images ...")
 	train_set_x = []
 	train_set_y = []
@@ -82,9 +82,9 @@ def loadTestset(start, end):
 	return africans, asians
 
 
-if __name__ == '__main__':
+def main(train_images):
 	#Load the images into lists
-	train_set_x, train_set_y = loadimages()
+	train_set_x, train_set_y = loadimages(train_images)
 
 	#Convert the lists to arrays
 	train_set_x = np.array(train_set_x, dtype="object")
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
 	print("Train the model")
 	model = LogisticRegression(C=0.2, class_weight=None, dual=False, fit_intercept=True,
-                   intercept_scaling=1, l1_ratio=None, max_iter=500000,
+                   intercept_scaling=1, l1_ratio=None, max_iter=5000,
                    multi_class='ovr', n_jobs=None, penalty='l2',
                    random_state=0, solver='liblinear', tol=0.0001, verbose=0,
                    warm_start=False)

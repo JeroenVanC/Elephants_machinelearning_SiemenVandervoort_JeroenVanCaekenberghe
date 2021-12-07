@@ -8,7 +8,7 @@ import imageio as iio
 #import pdb
 
 
-train_images = 50 # 400
+train_images = 400 # 400
 counter_cost = 0
 
 def loadimages():
@@ -189,10 +189,9 @@ if __name__ == '__main__':
     X = np.array(X, dtype="object")
     y = np.array(y, dtype="object")
     X = X.astype(float)
-    y = y.astype(float)
+    y = y.astype(int)
     X = X.reshape(X.shape[0], -1)
     X = X /255
-
 
     # Initializing NEural Network Parameters ------------------------
     print('Initializing Neural Network Parameters ...')
@@ -205,12 +204,9 @@ if __name__ == '__main__':
     initial_nn_params = np.concatenate([initial_Theta1.ravel(), initial_Theta2.ravel()], axis=0)
     print('Unroll Parameters')
     #---------------------------------------------------------------------
-
-
-
     #  After you have completed the assignment, change the maxiter to a larger
     #  value to see how more training helps.
-    options= {'maxiter': 50}
+    options= {'maxiter':1000}
 
     #  You should also try different values of lambda
     lambda_ = 1
@@ -243,10 +239,13 @@ if __name__ == '__main__':
 
     #Run nieuwe foto's:
     x_test = []
-    for number in range(100, 201):
+    y_test = []
+    for number in range(100, 200):
         image_rgb = []
-        As_rgb = iio.imread('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg')
+        As_rgb = iio.imread('Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg')
         x_test.append(As_rgb)
+        y_test.append(1)
+        
 
     x_test = np.array(x_test, dtype="object")
     x_test = x_test.astype(float)
@@ -254,8 +253,20 @@ if __name__ == '__main__':
     x_test = x_test/255
 
     prediction = utils.predict(Theta1, Theta2, x_test)
+    print("")
+    print("---------------------------------END ITERATIONS----------------------------------------")
+    print("---------------------------------------------------------------------------------------")
+    print("---------------------------------SHOW CORRECT OUTPUT (y)-------------------------------")
+    print("")
+    print(str(y_test))
+    print("")
+    print("---------------------------------SHOW PREDICTED OUTPUT---------------------------------")
+    print("")
     print(str(prediction))
-    print('Training Set Accuracy: %f' % (np.mean(prediction == y) * 100))
+    print("")
+    print("----------------------------------SHOW ACCURACY----------------------------------------")
+    
+    print('Training Set Accuracy: %f' % (np.mean(prediction == y_test) * 100))
 
     african = 0
     asian = 0

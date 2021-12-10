@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, r2_score
 
 # Constants
 newSize = 50

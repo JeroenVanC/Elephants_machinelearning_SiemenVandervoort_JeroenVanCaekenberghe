@@ -99,7 +99,7 @@ def model(train_set_x, train_set_y, iterations, alpha):
 
 	#Print accuracy
 	Y_prediction_train = predict(w, b, train_set_x)
-	print("train accuracy: {} %".format(100 - np.mean(np.abs(Y_prediction_train - train_set_y)) * 100))
+	print('Training Set Accuracy: %f' % (np.mean(Y_prediction_train == train_set_y) * 100))
 
 	info = {"costs": costs,
 		 "Y_prediction_train" : Y_prediction_train, 
@@ -151,7 +151,12 @@ def own_Image(my_image, info):
 	return np.squeeze(my_predicted_image)
 
 
-def main(train_images, iterations):
+#def main(train_images, iterations):
+if __name__ == '__main__':
+
+	train_images = 400
+	iterations = 3000
+
 	#Load the images into lists
 	train_set_x, train_set_y = loadimages(train_images)
 

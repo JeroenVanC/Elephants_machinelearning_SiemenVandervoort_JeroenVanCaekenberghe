@@ -17,7 +17,7 @@ hidden_layer_size = 25
 output_layer_size = 1
 elephant_labels = 2
 
-def loadimages(train_images):
+def loadimages_randomly(train_images):
 	print("Loading " + str(train_images) + " images...")
 	train_set_x = []
 	train_set_y = []
@@ -50,41 +50,79 @@ def loadimages(train_images):
 
 	return train_set_x, train_set_y
 
+#Load images afwisselend
+def loadimages_alternating(train_images):
+	print("Loading " + str(train_images) + " images...")
+	train_set_x = []
+	train_set_y = []
+
+	for i in range(0, 2 * train_images):
+		train_set_x.append(0)
+		train_set_y.append(0)
+
+	#Use a counter to iterate through the list
+	counter = 0
+
+	# Load African images
+	for number in range(1, train_images + 1):
+		Af_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
+		train_set_x[counter] = Af_rgb
+		train_set_y[counter] = 1.0
+		counter = counter + 2
+
+	counter = 1
+	# Load Asian images
+	for number in range(1, train_images + 1):
+		As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
+		train_set_x[counter] = As_rgb
+		train_set_y[counter] = 0.0
+		counter = counter + 2
+
+	print("	Images loaded!")
+
+	return train_set_x, train_set_y
+
 def loadTestset(start, end):
 	print("Loading test images ...")
-	africans = []
+	test_set_x = []
+	test_set_y = []
 	asians = []
+	africans = []
 
 	# Load African test images
 	for number in range(start, end):
 		Af_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
-		africans.append(Af_rgb)
+		test_set_x.append(Af_rgb)
+		test_set_y.append(1.0)
 
 	# Load Asian test images
 	for number in range(start, end):
 		As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
-		asians.append(As_rgb)
+		test_set_x.append(As_rgb)
+		test_set_y.append(0.0)
 
-	africans = np.array(africans, dtype="object")
-	asians = np.array(asians, dtype="object")
+	test_set_x = np.array(test_set_x, dtype="object")
+	test_set_y = np.array(test_set_y, dtype="object")
 
-	africans = africans.astype(float)
-	asians = asians.astype(float)
+	test_set_x = test_set_x.astype(float)
+	test_set_y = test_set_y.astype(float)
 
-	africans = africans/255
-	asians = asians/255
+	test_set_x = test_set_x/255
 
-	africans = africans.reshape(africans.shape[0], -1)
-	asians = asians.reshape(asians.shape[0], -1)
+	test_set_x = test_set_x.reshape(test_set_x.shape[0], -1)
 
 	print("Test images loaded!")
 
-	return africans, asians
+	return test_set_x, test_set_y
 
 
-def main(train_images, iterations):
+#def main(train_images, iterations):
+if __name__ == '__main__':
+	train_images = 400
+	iterations = 1000
+
 	#Load the images into lists
-	train_set_x, train_set_y = loadimages(train_images)
+	train_set_x, train_set_y = loadimages_alternating(train_images)
 
 	#Convert the lists to arrays
 	train_set_x = np.array(train_set_x, dtype="object")
@@ -104,46 +142,53 @@ def main(train_images, iterations):
 
 	train_set_x = train_set_x.reshape(train_set_x.shape[0], -1)
 
-	print("Train the model")
-	model = LogisticRegression(C=0.2, class_weight=None, dual=False, fit_intercept=True,
-                   intercept_scaling=1, l1_ratio=None, max_iter=iterations,
-                   multi_class='ovr', n_jobs=None, penalty='l2',
-                   random_state=0, solver='liblinear', tol=0.0001, verbose=0,
-                   warm_start=False)
-
-	model.fit(train_set_x,train_set_y)
+	#Parameters to change
+	param_C     = [0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1]
+	param_iterations = [10000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
+	param_C_counter = 0
+	param_iterations_counter = 0
 
 	#Load test images
-	africans, asians = loadTestset(401, 511)
+	test_set_x, test_set_y = loadTestset(401, 511)
 
-	africans_pred = model.predict(africans)
-	asians_pred = model.predict(asians)
+	for tests in range(0,1):
+		print("Train the model")
+		model = LogisticRegression(C=param_C[param_C_counter], class_weight=None, dual=False, fit_intercept=True,
+					   intercept_scaling=1, l1_ratio=None, max_iter=param_iterations[param_iterations_counter],
+					   multi_class='ovr', n_jobs=None, penalty='l2',
+					   random_state=0, solver='liblinear', tol=0.0001, verbose=0,
+					   warm_start=False)
 
-	#Test African images
-	africans = 0
-	asians = 0
-	for number in range(0, len(africans_pred)):
-		if africans_pred[number] == 1:
-			africans = africans + 1
-		else:
-			asians = asians + 1
+		model.fit(train_set_x, train_set_y)
 
-	print("Africans: " + str(africans) + ", Asians: " + str(asians))
-	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
+		#Accuracy train set
+		accuracy_train_set = model.score(train_set_x, train_set_y)
+		print("Train Set Accuracy    : " + str(accuracy_train_set))
 
-	#Test Asian images
-	africans = 0
-	asians = 0
-	for number in range(0, len(asians_pred)):
-		if asians_pred[number] == 1:
-			africans = africans + 1
-		else:
-			asians = asians + 1
+		#Accuracy test set
+		accuracy_test_set = model.score(test_set_x, test_set_y)
+		print("Test Set Accuracy     : " + str(accuracy_test_set))
 
-	print("Africans: " + str(africans) + ", Asians: " + str(asians))
-	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
+		print("Iterations            : " + str(param_iterations[param_iterations_counter]))
+		print("C                     : " + str(param_C[param_C_counter]))
 
+		#Export results
+		path = "Output_parameters/LogRegLib_iterations_" + str(param_iterations[param_iterations_counter]) + "_C_" + str(param_C[param_C_counter])
 
+		np.savez(str(path), train_images = train_images, 
+					param_iterations = param_iterations[param_iterations_counter], 
+					accuracy_train_set = accuracy_train_set,
+					accuracy_test_set = accuracy_test_set,
+					param_C = param_C[param_C_counter]
+				)
+
+		#---------------------------------------------#
+		#Load exported data
+		"""
+		a = np.load(str(path) + ".npz", allow_pickle=True)
+		print(str(a["param_lambda"]))
+		print(str(a["w"]))
+		"""
 
 
 

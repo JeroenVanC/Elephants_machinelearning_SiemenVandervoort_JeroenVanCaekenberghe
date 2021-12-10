@@ -4,9 +4,10 @@ import imageio as iio
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import json
 
-#Load the images
-def loadimages(train_images):
+#Load the images randomly
+def loadimages_randomly(train_images):
 	print("Loading " + str(train_images) + " images...")
 	train_set_x = []
 	train_set_y = []
@@ -24,16 +25,48 @@ def loadimages(train_images):
 	# Load African images
 	for number in range(1, train_images + 1):
 		Af_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
-		train_set_x[randomList[counter]] = Af_rgb        
-		train_set_y[randomList[counter]] = 1.0           
-		counter = counter + 1                            
-														 
-	# Load Asian images                                  
-	for number in range(1, train_images + 1):            
+		train_set_x[randomList[counter]] = Af_rgb
+		train_set_y[randomList[counter]] = 1.0
+		counter = counter + 1
+
+	# Load Asian images
+	for number in range(1, train_images + 1):
 		As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
 		train_set_x[randomList[counter]] = As_rgb
 		train_set_y[randomList[counter]] = 0.0
 		counter = counter + 1
+
+	print("	Images loaded!")
+
+	return train_set_x, train_set_y
+
+#Load images afwisselend
+def loadimages_alternating(train_images):
+	print("Loading " + str(train_images) + " images...")
+	train_set_x = []
+	train_set_y = []
+
+	for i in range(0, 2 * train_images):
+		train_set_x.append(0)
+		train_set_y.append(0)
+
+	#Use a counter to iterate through the list
+	counter = 0
+
+	# Load African images
+	for number in range(1, train_images + 1):
+		Af_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
+		train_set_x[counter] = Af_rgb
+		train_set_y[counter] = 1.0
+		counter = counter + 2
+
+	counter = 1
+	# Load Asian images
+	for number in range(1, train_images + 1):
+		As_rgb = iio.imread("Dataset/Train/Resized_Images_20_20/Asian/Asian_" + str(number) + ".jpg")
+		train_set_x[counter] = As_rgb
+		train_set_y[counter] = 0.0
+		counter = counter + 2
 
 	print("	Images loaded!")
 
@@ -99,6 +132,9 @@ def model(train_set_x, train_set_y, iterations, alpha):
 
 	#Print accuracy
 	Y_prediction_train = predict(w, b, train_set_x)
+
+	accuracy = np.mean(Y_prediction_train == train_set_y) * 100
+
 	print('Training Set Accuracy: %f' % (np.mean(Y_prediction_train == train_set_y) * 100))
 
 	info = {"costs": costs,
@@ -106,7 +142,8 @@ def model(train_set_x, train_set_y, iterations, alpha):
 		 "w" : w, 
 		 "b" : b,
 		 "alpha" : alpha,
-		 "iterations": iterations}
+		 "iterations": iterations,
+		 "accuracy": np.round(accuracy, 5)}
 
 	return info
 
@@ -155,10 +192,9 @@ def own_Image(my_image, info):
 if __name__ == '__main__':
 
 	train_images = 400
-	iterations = 3000
 
 	#Load the images into lists
-	train_set_x, train_set_y = loadimages(train_images)
+	train_set_x, train_set_y = loadimages_alternating(train_images)
 
 	#Convert the lists to arrays
 	train_set_x = np.array(train_set_x, dtype="object")
@@ -181,39 +217,76 @@ if __name__ == '__main__':
 	#Standardize the dataset
 	train_set_x = train_set_x_flatten/255
 
-	#Train the model
-	info = model(train_set_x, train_set_y, iterations, 0.005)
+	#Parameters to change
+	param_lambda     = [0.005, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1]
+	param_iterations = [5000000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
+	param_lambda_counter = 0
+	param_iterations_counter = 0
 
-	#Plot costs
-	costs = np.squeeze(info['costs'])
-	plt.plot(costs)
-	plt.ylabel('Cost')
-	plt.xlabel('Iterations (per hundreds)')
-	plt.title("Learning rate = " + str(0.005))
-	plt.show()
+	for tests in range(0, 1):
+		#Train the model
+		info = model(train_set_x, train_set_y, param_iterations[param_iterations_counter], param_lambda[param_lambda_counter])
 
-	#Test African images
-	africans = 0
-	asians = 0
-	for number in range(401, 511):
-		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', info)
-		if result == 1:
-			africans = africans + 1
-		else:
-			asians = asians + 1
+		#Get info
+		costs = np.squeeze(info['costs'])
+		accuracy_train_set = np.squeeze(info['accuracy'])
+		w = np.squeeze(info['w'])
+		b = np.squeeze(info['b'])
 
-	print("Africans: " + str(africans) + ", Asians: " + str(asians))
-	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
+		#Plot and save costs
+		plt.plot(costs)
+		plt.ylabel('Cost')
+		plt.xlabel('Iterations (per hundreds)')
+		plt.title("Learning rate = " + str(param_lambda[param_lambda_counter]))
+		plt.savefig("Output_parameters/Test_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + ".jpg")
 
-	#Test Asian images
-	africans = 0
-	asians = 0
-	for number in range(401, 511):
-		result = own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', info)
-		if result == 1:
-			africans = africans + 1
-		else:
-			asians = asians + 1
+		#Test African images
+		test_set_y = []
+		y_prediction_test = []
+		for number in range(401, 511):
+			y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', info)))
+			test_set_y.append(1.0)
 
-	print("Africans: " + str(africans) + ", Asians: " + str(asians))
-	print("% Afr   : " + str(round(africans/(africans+asians), 2)) + ", % Asi: " + str(round(asians/(asians+africans), 2)))
+		#Test Asian images
+		for number in range(401, 511):
+			y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', info)))
+			test_set_y.append(0.0)
+
+		#Calculate accuracy
+		correct = 0
+		for counter in range(0, 220):
+			if str(y_prediction_test[counter]) == str(test_set_y[counter]):
+				correct = correct + 1
+
+		accuracy_test_set = (correct/220) * 100
+
+		print("Test Set Accuracy    : " + str(accuracy_test_set))
+
+		#Export results
+		path = "Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter])
+
+		np.savez(str(path), train_images = train_images, 
+					param_iterations = param_iterations[param_iterations_counter], 
+					accuracy_train_set = accuracy_train_set,
+					accuracy_test_set = accuracy_test_set,
+					cost = costs,
+					w = w,
+					b = b,
+					param_lambda = param_lambda[param_lambda_counter]
+				)
+
+		#---------------------------------------------#
+		#Load exported data
+		"""
+		a = np.load(str(path) + ".npz", allow_pickle=True)
+		print(str(a["param_lambda"]))
+		print(str(a["w"]))
+		"""
+
+
+
+
+
+
+
+

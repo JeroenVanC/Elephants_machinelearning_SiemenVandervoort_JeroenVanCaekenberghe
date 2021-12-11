@@ -126,7 +126,7 @@ def optimizeGradientDescent(w, b, x, y, iterations, alpha):
 			accuracy_test_set.append(accuracy_test)
 			accuracy_train_set.append(accuracy_train)
 
-			print("Train set cost after iteration %i: %f" %(i, cost) + ",	Test set accuracy: " + str(np.round(accuracy_test, 5)) + ",	Train set accuracy: " + str(np.round(accuracy_train, 5)) + ",	Test set cost: " + str(test_set_cost))
+			print("Train set cost after iteration %i: %f" %(i, cost) + ",	Test set accuracy: " + str(np.round(accuracy_test, 5)) + ",	Train set accuracy: " + str(np.round(accuracy_train, 5)) + ",	Test set cost: " + str(test_set_cost) + ",	Learning rate: " + str(alpha))
 
 	return w, b, dw, db, costs, accuracy_test_set, accuracy_train_set, costs_test_set
 
@@ -281,43 +281,70 @@ def getAccuracyTestSet(w, b):
 def reloadExportedData():
 	#---------------------------------------------#
 	#Load exported data
-	param_iterations = 100000
-	param_lambda     = 0.005 
-	path = "Output_parameters/LogReg_iterations_" + str(param_iterations) + "_lamda_" + str(param_lambda)
-	exported_data = np.load(str(path) + ".npz", allow_pickle=True)
+	param_iterations = 50000
+	param_lambda     = 0.005
 
-	train_images = exported_data["train_images"]
-	param_iterations = exported_data["param_iterations"]
-	accuracy_train = exported_data["accuracy_train"]
-	accuracy_test = exported_data["accuracy_test"]
-	accuracy_test_set = exported_data["accuracy_test_set"]
-	accuracy_train_set = exported_data["accuracy_train_set"]
-	cost = exported_data["cost"]
-	costs_test_set = exported_data["costs_test_set"]
-	w = exported_data["w"]
-	b = exported_data["b"]
-	param_lambda = exported_data["param_lambda"]
+	test_cost_to_plot = []
+	train_cost_to_plot = []
+	test_acc_to_plot = []
+	train_acc_to_plot = []
+
+	#Plot cost in function of lambda
+	param_lambda = [0.0001, 0.0003, 0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1]
+	plt.figure()
+	for learningRate in param_lambda:
+		path = "Output_parameters/LogReg_iterations_" + str(param_iterations) + "_lamda_" + str(learningRate)
+		exported_data = np.load(str(path) + ".npz", allow_pickle=True)
+
+		train_images = exported_data["train_images"]
+		param_iterations = exported_data["param_iterations"]
+		accuracy_train = exported_data["accuracy_train"]
+		accuracy_test = exported_data["accuracy_test"]
+		accuracy_test_set = exported_data["accuracy_test_set"]
+		accuracy_train_set = exported_data["accuracy_train_set"]
+		costs_train_set = exported_data["cost"]
+		costs_test_set = exported_data["costs_test_set"]
+		w = exported_data["w"]
+		b = exported_data["b"]
+		param_lambda_reload = exported_data["param_lambda"]
+
+		print("Train set accuracy: " + str(accuracy_train) + ", 	Test set accuracy: " + str(accuracy_test))
+
+		train_cost_to_plot.append(costs_train_set[len(costs_train_set)-1])
+		test_cost_to_plot.append(costs_test_set[len(costs_test_set)-1])
+		test_acc_to_plot.append(accuracy_test)
+		train_acc_to_plot.append(accuracy_train)
+
+		#plt.plot(costs_train_set, label = "Train set cost " + str(param_lambda_reload))
+		plt.plot(costs_test_set, label = "Test set cost " + str(param_lambda_reload))
+		plt.ylabel('Cost')
+		plt.xlabel('Iterations (hundreds)')
+		plt.legend()
 
 	plt.figure()
-	plt.plot(cost, label = "Train set cost")
-	plt.plot(costs_test_set, label = "Test set cost")
+	plt.plot(param_lambda, train_cost_to_plot, label = "Train set cost")
+	plt.plot(param_lambda, test_cost_to_plot, label = "Test set cost")
 	plt.ylabel('Cost')
-	plt.xlabel('Iterations (per hundreds)')
+	plt.xlabel('Learning rate')
+	#plt.xscale('log')
 	plt.legend()
-	plt.title("Learning rate = " + str(param_lambda))
-
+	#plt.title("Learning rate = " + str(param_lambda))
+	plt.title("Changing learning rate")
+	
 	plt.figure()
-	plt.plot(accuracy_test_set, label = "Accuracy test set")
-	plt.plot(accuracy_train_set, label = "Accuracy train set")
+	plt.plot(param_lambda, train_acc_to_plot, label = "Accuracy train set")
+	plt.plot(param_lambda, test_acc_to_plot, label = "Accuracy test set")
 	plt.ylabel('Accuracy (%)')
-	plt.xlabel('Iterations (per hundreds)')
+	plt.xlabel('Learning rate')
 	plt.legend()
-	plt.title("Learning rate = " + str(param_lambda))
+	#plt.title("Learning rate = " + str(param_lambda))
+	plt.title("Changing learning rate")
 
 	plt.show()
 
 #def main(train_images, iterations):
 if __name__ == '__main__':
+	"""
 	reloadExportedData()
 	"""
 	train_images = 400
@@ -347,12 +374,13 @@ if __name__ == '__main__':
 	train_set_x = train_set_x_flatten/255
 
 	#Parameters to change
-	param_lambda     = [0.005, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1]
-	param_iterations = [1000000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
+	param_lambda = [0.0001, 0.0003, 0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1]
+	param_iterations = [300000]
 	param_lambda_counter = 0
 	param_iterations_counter = 0
 
-	for tests in range(0, 1):
+	for tests in range(0, len(param_lambda)):
+		param_lambda_counter = tests
 		#Train the model
 		info = model(train_set_x, train_set_y, param_iterations[param_iterations_counter], param_lambda[param_lambda_counter])
 
@@ -374,7 +402,7 @@ if __name__ == '__main__':
 		plt.xlabel('Iterations (per hundreds)')
 		plt.legend()
 		plt.title("Learning rate = " + str(param_lambda[param_lambda_counter]))
-		plt.savefig("Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_costs.jpg")
+		plt.savefig("Output_parameters_Ultimate_Test/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_costs.jpg")
 
 		plt.figure()
 		plt.plot(accuracy_test_set, label = "Accuracy test set")
@@ -383,10 +411,10 @@ if __name__ == '__main__':
 		plt.xlabel('Iterations (per hundreds)')
 		plt.legend()
 		plt.title("Learning rate = " + str(param_lambda[param_lambda_counter]))
-		plt.savefig("Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_accuracy.jpg")
+		plt.savefig("Output_parameters_Ultimate_Test/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_accuracy.jpg")
 
 		#Export results
-		path = "Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter])
+		path = "Output_parameters_Ultimate_Test/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter])
 
 		np.savez(str(path), train_images = train_images, 
 					param_iterations = param_iterations[param_iterations_counter], 
@@ -400,7 +428,7 @@ if __name__ == '__main__':
 					b = b,
 					param_lambda = param_lambda[param_lambda_counter]
 				)
-	"""
+	
 
 
 

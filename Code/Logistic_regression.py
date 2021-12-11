@@ -99,10 +99,17 @@ def propagation(w, b, x, y):
 #Calculate the thetas
 def optimizeGradientDescent(w, b, x, y, iterations, alpha):
 	costs = []
+	costs_test_set = []
+	accuracy_test_set = []
+	accuracy_train_set = []
+
+	test_set_x, test_set_y = getOwnImages()
 
 	for i in range(iterations):
 		#Propagation
 		dw, db, cost = propagation(w, b, x, y)
+
+		dw2, db2, test_set_cost = propagation(w, b, test_set_x, test_set_y)
 
 		#Update w and b
 		w = w - alpha * dw
@@ -111,11 +118,17 @@ def optimizeGradientDescent(w, b, x, y, iterations, alpha):
 		# Record the costs
 		if i % 100 == 0:
 			costs.append(cost)
+			costs_test_set.append(test_set_cost)
 
 		if True and i % 100 == 0:
-			print ("Cost after iteration %i: %f" %(i, cost))
+			accuracy_test = getAccuracyTestSet(w, b)
+			accuracy_train, Y_prediction_train = getAccuracyTrainSet(w, b, x, y)
+			accuracy_test_set.append(accuracy_test)
+			accuracy_train_set.append(accuracy_train)
 
-	return w, b, dw, db, costs
+			print("Train set cost after iteration %i: %f" %(i, cost) + ",	Test set accuracy: " + str(np.round(accuracy_test, 5)) + ",	Train set accuracy: " + str(np.round(accuracy_train, 5)) + ",	Test set cost: " + str(test_set_cost))
+
+	return w, b, dw, db, costs, accuracy_test_set, accuracy_train_set, costs_test_set
 
 #Overall model
 def model(train_set_x, train_set_y, iterations, alpha):
@@ -128,22 +141,27 @@ def model(train_set_x, train_set_y, iterations, alpha):
 	assert(isinstance(b, float) or isinstance(b, int))
 
 	#Gradient descent
-	w, b, dw, db, costs = optimizeGradientDescent(w, b, train_set_x, train_set_y, iterations, alpha)
+	w, b, dw, db, costs, accuracy_test_set, accuracy_train_set, costs_test_set = optimizeGradientDescent(w, b, train_set_x, train_set_y, iterations, alpha)
 
 	#Print accuracy
-	Y_prediction_train = predict(w, b, train_set_x)
+	accuracy_train, Y_prediction_train = getAccuracyTrainSet(w, b, train_set_x, train_set_y)
+	accuracy_test = getAccuracyTestSet(w, b)
 
-	accuracy = np.mean(Y_prediction_train == train_set_y) * 100
-
-	print('Training Set Accuracy: %f' % (np.mean(Y_prediction_train == train_set_y) * 100))
+	print('Training Set Accuracy: %f' % accuracy_train)
+	print('Test Set Accuracy    : %f' % accuracy_test)
 
 	info = {"costs": costs,
+		 "costs_test_set": costs_test_set,
 		 "Y_prediction_train" : Y_prediction_train, 
 		 "w" : w, 
 		 "b" : b,
 		 "alpha" : alpha,
 		 "iterations": iterations,
-		 "accuracy": np.round(accuracy, 5)}
+		 "accuracy_train": accuracy_train,
+		 "accuracy_test": accuracy_test,
+		 "accuracy_test_set": accuracy_test_set,
+		 "accuracy_train_set": accuracy_train_set
+		 }
 
 	return info
 
@@ -169,7 +187,7 @@ def predict(w, b, x):
 	return Y_prediction
 
 #Try our own images
-def own_Image(my_image, info):
+def own_Image(my_image, w ,b):
 	#We preprocess the image to fit the algorithm.
 	image_rgb = []
 
@@ -183,14 +201,125 @@ def own_Image(my_image, info):
 
 	image_rgb_flatten = image_rgb_flatten.astype(float)
 
-	my_predicted_image = predict(info["w"], info["b"], image_rgb_flatten)
+	my_predicted_image = predict(w, b, image_rgb_flatten)
 
 	return np.squeeze(my_predicted_image)
 
+def getOwnImages():
+	test_images = 110
+	test_set_x = []
+	test_set_y = []
+
+	for i in range(0, 2 * test_images):
+		test_set_x.append(0)
+		test_set_y.append(0)
+
+	#Use a counter to iterate through the list
+	counter = 0
+
+	# Load African images
+	for number in range(401, 511):
+		Af_rgb = iio.imread("C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_" + str(number) + ".jpg")
+		test_set_x[counter] = Af_rgb
+		test_set_y[counter] = 1.0
+		counter = counter + 2
+
+	counter = 1
+	# Load Asian images
+	for number in range(401, 511):
+		As_rgb = iio.imread('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg')
+		test_set_x[counter] = As_rgb
+		test_set_y[counter] = 0.0
+		counter = counter + 2
+
+	#Convert the lists to arrays
+	test_set_x = np.array(test_set_x, dtype="object")
+	test_set_y = np.array(test_set_y, dtype="object")
+
+	#Reshape the arrays
+	test_set_y = test_set_y.astype(float)
+	test_set_x = test_set_x.astype(float)
+
+	train_set_x_flatten = test_set_x.reshape(test_set_x.shape[0], -1).T
+
+	#Standardize the dataset
+	test_set_x = train_set_x_flatten/255
+
+	return test_set_x, test_set_y
+
+
+def getAccuracyTrainSet(w, b, train_set_x, train_set_y):
+	Y_prediction_train = predict(w, b, train_set_x)
+
+	accuracy = np.mean(Y_prediction_train == train_set_y) * 100
+
+	return accuracy, Y_prediction_train
+
+def getAccuracyTestSet(w, b):
+	#Test African images
+	test_set_y = []
+	y_prediction_test = []
+	for number in range(401, 511):
+		y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', w, b)))
+		test_set_y.append(1.0)
+
+	#Test Asian images
+	for number in range(401, 511):
+		y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', w, b)))
+		test_set_y.append(0.0)
+
+	#Calculate accuracy
+	correct = 0
+	for counter in range(0, 220):
+		if str(y_prediction_test[counter]) == str(test_set_y[counter]):
+			correct = correct + 1
+
+	accuracy_test_set = (correct/220) * 100
+
+	return accuracy_test_set
+
+def reloadExportedData():
+	#---------------------------------------------#
+	#Load exported data
+	param_iterations = 100000
+	param_lambda     = 0.005 
+	path = "Output_parameters/LogReg_iterations_" + str(param_iterations) + "_lamda_" + str(param_lambda)
+	exported_data = np.load(str(path) + ".npz", allow_pickle=True)
+
+	train_images = exported_data["train_images"]
+	param_iterations = exported_data["param_iterations"]
+	accuracy_train = exported_data["accuracy_train"]
+	accuracy_test = exported_data["accuracy_test"]
+	accuracy_test_set = exported_data["accuracy_test_set"]
+	accuracy_train_set = exported_data["accuracy_train_set"]
+	cost = exported_data["cost"]
+	costs_test_set = exported_data["costs_test_set"]
+	w = exported_data["w"]
+	b = exported_data["b"]
+	param_lambda = exported_data["param_lambda"]
+
+	plt.figure()
+	plt.plot(cost, label = "Train set cost")
+	plt.plot(costs_test_set, label = "Test set cost")
+	plt.ylabel('Cost')
+	plt.xlabel('Iterations (per hundreds)')
+	plt.legend()
+	plt.title("Learning rate = " + str(param_lambda))
+
+	plt.figure()
+	plt.plot(accuracy_test_set, label = "Accuracy test set")
+	plt.plot(accuracy_train_set, label = "Accuracy train set")
+	plt.ylabel('Accuracy (%)')
+	plt.xlabel('Iterations (per hundreds)')
+	plt.legend()
+	plt.title("Learning rate = " + str(param_lambda))
+
+	plt.show()
 
 #def main(train_images, iterations):
 if __name__ == '__main__':
-
+	reloadExportedData()
+	"""
 	train_images = 400
 
 	#Load the images into lists
@@ -219,7 +348,7 @@ if __name__ == '__main__':
 
 	#Parameters to change
 	param_lambda     = [0.005, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1]
-	param_iterations = [5000000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
+	param_iterations = [1000000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
 	param_lambda_counter = 0
 	param_iterations_counter = 0
 
@@ -229,59 +358,49 @@ if __name__ == '__main__':
 
 		#Get info
 		costs = np.squeeze(info['costs'])
-		accuracy_train_set = np.squeeze(info['accuracy'])
+		costs_test_set = np.squeeze(info['costs_test_set'])
+		accuracy_train = np.squeeze(info['accuracy_train'])
+		accuracy_test = np.squeeze(info['accuracy_test'])
 		w = np.squeeze(info['w'])
 		b = np.squeeze(info['b'])
+		accuracy_test_set = info['accuracy_test_set']
+		accuracy_train_set = info['accuracy_train_set']
 
-		#Plot and save costs
-		plt.plot(costs)
+		#Plot and save costs & accuracy test set
+		plt.figure()
+		plt.plot(costs, label = "Train set cost")
+		plt.plot(costs_test_set, label = "Test set cost")
 		plt.ylabel('Cost')
 		plt.xlabel('Iterations (per hundreds)')
+		plt.legend()
 		plt.title("Learning rate = " + str(param_lambda[param_lambda_counter]))
-		plt.savefig("Output_parameters/Test_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + ".jpg")
+		plt.savefig("Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_costs.jpg")
 
-		#Test African images
-		test_set_y = []
-		y_prediction_test = []
-		for number in range(401, 511):
-			y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', info)))
-			test_set_y.append(1.0)
-
-		#Test Asian images
-		for number in range(401, 511):
-			y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', info)))
-			test_set_y.append(0.0)
-
-		#Calculate accuracy
-		correct = 0
-		for counter in range(0, 220):
-			if str(y_prediction_test[counter]) == str(test_set_y[counter]):
-				correct = correct + 1
-
-		accuracy_test_set = (correct/220) * 100
-
-		print("Test Set Accuracy    : " + str(accuracy_test_set))
+		plt.figure()
+		plt.plot(accuracy_test_set, label = "Accuracy test set")
+		plt.plot(accuracy_train_set, label = "Accuracy train set")
+		plt.ylabel('Accuracy (%)')
+		plt.xlabel('Iterations (per hundreds)')
+		plt.legend()
+		plt.title("Learning rate = " + str(param_lambda[param_lambda_counter]))
+		plt.savefig("Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter]) + "_accuracy.jpg")
 
 		#Export results
 		path = "Output_parameters/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter])
 
 		np.savez(str(path), train_images = train_images, 
 					param_iterations = param_iterations[param_iterations_counter], 
-					accuracy_train_set = accuracy_train_set,
+					accuracy_train = accuracy_train,
+					accuracy_test = accuracy_test,
 					accuracy_test_set = accuracy_test_set,
+					accuracy_train_set = accuracy_train_set,
 					cost = costs,
+					costs_test_set = costs_test_set,
 					w = w,
 					b = b,
 					param_lambda = param_lambda[param_lambda_counter]
 				)
-
-		#---------------------------------------------#
-		#Load exported data
-		"""
-		a = np.load(str(path) + ".npz", allow_pickle=True)
-		print(str(a["param_lambda"]))
-		print(str(a["w"]))
-		"""
+	"""
 
 
 

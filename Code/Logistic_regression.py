@@ -5,6 +5,8 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import json
+from sklearn.metrics import classification_report, confusion_matrix, r2_score
+import seaborn as sns
 
 #Load the images randomly
 def loadimages_randomly(train_images):
@@ -121,7 +123,7 @@ def optimizeGradientDescent(w, b, x, y, iterations, alpha):
 			costs_test_set.append(test_set_cost)
 
 		if True and i % 100 == 0:
-			accuracy_test = getAccuracyTestSet(w, b)
+			accuracy_test, x_prediction_test = getAccuracyTestSet(w, b)
 			accuracy_train, Y_prediction_train = getAccuracyTrainSet(w, b, x, y)
 			accuracy_test_set.append(accuracy_test)
 			accuracy_train_set.append(accuracy_train)
@@ -145,7 +147,7 @@ def model(train_set_x, train_set_y, iterations, alpha):
 
 	#Print accuracy
 	accuracy_train, Y_prediction_train = getAccuracyTrainSet(w, b, train_set_x, train_set_y)
-	accuracy_test = getAccuracyTestSet(w, b)
+	accuracy_test, x_prediction_test = getAccuracyTestSet(w, b)
 
 	print('Training Set Accuracy: %f' % accuracy_train)
 	print('Test Set Accuracy    : %f' % accuracy_test)
@@ -258,25 +260,25 @@ def getAccuracyTrainSet(w, b, train_set_x, train_set_y):
 def getAccuracyTestSet(w, b):
 	#Test African images
 	test_set_y = []
-	y_prediction_test = []
+	x_prediction_test = []
 	for number in range(401, 511):
-		y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', w, b)))
+		x_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/African/African_' + str(number) + '.jpg', w, b)))
 		test_set_y.append(1.0)
 
 	#Test Asian images
 	for number in range(401, 511):
-		y_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', w, b)))
+		x_prediction_test.append(str(own_Image('C:/Users/HP/Documents/SCHOOL/Master_Elektronica_ICT/Machine_Learning/Project_Github/Elephants_machinelearning_SiemenVandervoort_JeroenVanCaekenberghe/Code/Dataset/Train/Resized_Images_20_20/Asian/Asian_' + str(number) + '.jpg', w, b)))
 		test_set_y.append(0.0)
 
 	#Calculate accuracy
 	correct = 0
 	for counter in range(0, 220):
-		if str(y_prediction_test[counter]) == str(test_set_y[counter]):
+		if str(x_prediction_test[counter]) == str(test_set_y[counter]):
 			correct = correct + 1
 
 	accuracy_test_set = (correct/220) * 100
 
-	return accuracy_test_set
+	return accuracy_test_set, x_prediction_test
 
 def reloadExportedData():
 	#---------------------------------------------#
@@ -347,7 +349,7 @@ def reloadExportedData():
 
 #def main(train_images, iterations):
 if __name__ == '__main__':
-	
+	"""
 	reloadExportedData()
 	"""
 	train_images = 400
@@ -377,12 +379,12 @@ if __name__ == '__main__':
 	train_set_x = train_set_x_flatten/255
 
 	#Parameters to change
-	param_lambda = [0.00001, 0.00003, 0.00006, 0.00009, 0.0001, 0.0003, 0.0006, 0.0009, 0.001]
-	param_iterations = [500000]
+	param_lambda = [0.003]
+	param_iterations = [20000]
 	param_lambda_counter = 0
 	param_iterations_counter = 0
 
-	for tests in range(0, len(param_lambda)):
+	for tests in range(0, 1):
 		param_lambda_counter = tests
 		#Train the model
 		info = model(train_set_x, train_set_y, param_iterations[param_iterations_counter], param_lambda[param_lambda_counter])
@@ -396,7 +398,7 @@ if __name__ == '__main__':
 		b = np.squeeze(info['b'])
 		accuracy_test_set = info['accuracy_test_set']
 		accuracy_train_set = info['accuracy_train_set']
-
+		"""
 		#Plot and save costs & accuracy test set
 		plt.figure()
 		plt.plot(costs, label = "Train set cost")
@@ -418,7 +420,31 @@ if __name__ == '__main__':
 
 		#Export results
 		path = "Output_parameters_Ultimate_Test/LogReg_iterations_" + str(param_iterations[param_iterations_counter]) + "_lamda_" + str(param_lambda[param_lambda_counter])
+		"""
+		#Confusion matrix
+		accuracy_test_set, x_prediction_test = getAccuracyTestSet(w, b)
 
+		newlist = []
+		for counter in range(0, len(x_prediction_test)):
+			if x_prediction_test[counter] == "1.0":
+				newlist.append(1.0)
+			else:
+				newlist.append(0.0)
+
+		test_set_y = []
+		for counter in range(0, 110):
+			test_set_y.append(1.0)
+		for counter in range(0, 110):
+			test_set_y.append(0.0)
+
+		cm=confusion_matrix(test_set_y, newlist)
+		plt.figure(figsize=(6,3))
+		plt.title("Confusion Matrix")
+		sns.heatmap(cm, annot=True,fmt='d', cmap='Blues')
+		plt.ylabel("Actual Values")
+		plt.xlabel("Predicted Values")
+		plt.show()
+		"""
 		np.savez(str(path), train_images = train_images, 
 					param_iterations = param_iterations[param_iterations_counter], 
 					accuracy_train = accuracy_train,
@@ -431,7 +457,7 @@ if __name__ == '__main__':
 					b = b,
 					param_lambda = param_lambda[param_lambda_counter]
 				)
-	"""
+		"""
 
 
 

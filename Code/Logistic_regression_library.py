@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, confusion_matrix, r2_score
+import seaborn as sns
 
 # Constants
 newSize = 50
@@ -119,7 +120,6 @@ def loadTestset(start, end):
 #def main(train_images, iterations):
 if __name__ == '__main__':
 	train_images = 400
-	iterations = 1000
 
 	#Load the images into lists
 	train_set_x, train_set_y = loadimages_alternating(train_images)
@@ -143,52 +143,84 @@ if __name__ == '__main__':
 	train_set_x = train_set_x.reshape(train_set_x.shape[0], -1)
 
 	#Parameters to change
-	param_C     = [0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1]
-	param_iterations = [10000, 5000, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000]
-	param_C_counter = 0
-	param_iterations_counter = 0
+	param_C          = [0.00001, 0.00003, 0.00006, 0.00009, 0.0001, 0.0003, 0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1, 0.3, 0.6, 0.9, 1, 3, 6, 9, 10, 30, 60, 90, 100, 300, 600, 900, 1000, 3000, 6000, 9000, 10000]
+	param_C_counter = 0.3
+	param_iterations_counter = 100
 
 	#Load test images
 	test_set_x, test_set_y = loadTestset(401, 511)
 
-	for tests in range(0,1):
-		print("Train the model")
-		model = LogisticRegression(C=param_C[param_C_counter], class_weight=None, dual=False, fit_intercept=True,
-					   intercept_scaling=1, l1_ratio=None, max_iter=param_iterations[param_iterations_counter],
-					   multi_class='ovr', n_jobs=None, penalty='l2',
-					   random_state=0, solver='liblinear', tol=0.0001, verbose=0,
-					   warm_start=False)
+	accuracy_test_set = []
+	accuracy_train_set = []
 
-		model.fit(train_set_x, train_set_y)
+	#for param_C_counter in param_C:
+	print("Train the model")
+	model = LogisticRegression(C=param_C_counter, class_weight=None, dual=False, fit_intercept=True,
+				   intercept_scaling=1, l1_ratio=None, max_iter=param_iterations_counter,
+				   multi_class='ovr', n_jobs=None, penalty='l2',
+				   random_state=0, solver='liblinear', tol=0.0001, verbose=0,
+				   warm_start=False) #swarm_start=True means using previous settings to start again
 
-		#Accuracy train set
-		accuracy_train_set = model.score(train_set_x, train_set_y)
-		print("Train Set Accuracy    : " + str(accuracy_train_set))
+	model.fit(train_set_x, train_set_y)
 
-		#Accuracy test set
-		accuracy_test_set = model.score(test_set_x, test_set_y)
-		print("Test Set Accuracy     : " + str(accuracy_test_set))
+	#Accuracy train set
+	accuracy_train = model.score(train_set_x, train_set_y) * 100
+	print("Train Set Accuracy    : " + str(accuracy_train))
+	accuracy_train_set.append(accuracy_train)
 
-		print("Iterations            : " + str(param_iterations[param_iterations_counter]))
-		print("C                     : " + str(param_C[param_C_counter]))
+	#Accuracy test set
+	accuracy_test = model.score(test_set_x, test_set_y) * 100
+	print("Test Set Accuracy     : " + str(accuracy_test))
+	accuracy_test_set.append(accuracy_test)
 
-		#Export results
-		path = "Output_parameters/LogRegLib_iterations_" + str(param_iterations[param_iterations_counter]) + "_C_" + str(param_C[param_C_counter])
+	print("Iterations            : " + str(param_iterations_counter))
+	print("C                     : " + str(param_C_counter))
+	print("-------------------------------------")
 
-		np.savez(str(path), train_images = train_images, 
-					param_iterations = param_iterations[param_iterations_counter], 
-					accuracy_train_set = accuracy_train_set,
-					accuracy_test_set = accuracy_test_set,
-					param_C = param_C[param_C_counter]
-				)
+	
+	result = model.predict(test_set_x)
+	print(classification_report(test_set_y, result))
 
-		#---------------------------------------------#
-		#Load exported data
-		"""
-		a = np.load(str(path) + ".npz", allow_pickle=True)
-		print(str(a["param_lambda"]))
-		print(str(a["w"]))
-		"""
+	cm=confusion_matrix(test_set_y, result)
+	plt.figure(figsize=(12,6))
+	plt.title("Confusion Matrix")
+	sns.heatmap(cm, annot=True,fmt='d', cmap='Blues')
+	plt.ylabel("Actual Values")
+	plt.xlabel("Predicted Values")
+	plt.show()
+	"""
+
+	#Accuracy
+	plt.figure()
+	plt.plot(param_C, accuracy_test_set, label = "Accuracy test set")
+	plt.plot(param_C, accuracy_train_set, label = "Accuracy train set")
+	plt.ylabel('Accuracy (%)')
+	plt.xlabel('Inverse of regularization strength')
+	plt.xscale('log')
+	plt.legend()
+	plt.title("Inverse of regularization strength = " + str(param_C_counter))
+	plt.savefig("Output_parameters_lib/LogRegLib_iterations_" + str(param_iterations_counter) + "_C_" + str(param_C_counter) + "_accuracy.jpg")
+	plt.show()
+	
+	#Export results
+	path = "Output_parameters_lib/LogRegLib_iterations_" + str(param_iterations_counter) + "_C_" + str(param_C_counter)
+
+	np.savez(str(path), train_images = train_images, 
+				param_iterations = param_iterations_counter, 
+				accuracy_train = accuracy_train,
+				accuracy_test = accuracy_test,
+				param_C = param_C,
+				accuracy_test_set =accuracy_test_set,
+				accuracy_train_set = accuracy_train_set
+			)
+
+	#---------------------------------------------#
+	#Load exported data
+	
+	a = np.load(str(path) + ".npz", allow_pickle=True)
+	print(str(a["param_lambda"]))
+	print(str(a["w"]))
+	"""
 
 
 

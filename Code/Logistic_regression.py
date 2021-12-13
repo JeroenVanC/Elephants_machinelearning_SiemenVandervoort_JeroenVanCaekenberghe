@@ -290,7 +290,7 @@ def reloadExportedData():
 	train_acc_to_plot = []
 
 	#Plot cost in function of lambda
-	param_lambda = [0.0001, 0.0003, 0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1]
+	param_lambda = [0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03]
 	plt.figure()
 	for learningRate in param_lambda:
 		path = "Output_parameters/LogReg_iterations_" + str(param_iterations) + "_lamda_" + str(learningRate)
@@ -321,6 +321,7 @@ def reloadExportedData():
 		plt.xlabel('Iterations (hundreds)')
 		plt.legend()
 
+	#Cost in functie van lamda
 	plt.figure()
 	plt.plot(param_lambda, train_cost_to_plot, label = "Train set cost")
 	plt.plot(param_lambda, test_cost_to_plot, label = "Test set cost")
@@ -330,12 +331,14 @@ def reloadExportedData():
 	plt.legend()
 	#plt.title("Learning rate = " + str(param_lambda))
 	plt.title("Changing learning rate")
-	
+
+	#Accuracy in functie van lambda
 	plt.figure()
 	plt.plot(param_lambda, train_acc_to_plot, label = "Accuracy train set")
 	plt.plot(param_lambda, test_acc_to_plot, label = "Accuracy test set")
 	plt.ylabel('Accuracy (%)')
 	plt.xlabel('Learning rate')
+	plt.xscale('log')
 	plt.legend()
 	#plt.title("Learning rate = " + str(param_lambda))
 	plt.title("Changing learning rate")
@@ -344,7 +347,7 @@ def reloadExportedData():
 
 #def main(train_images, iterations):
 if __name__ == '__main__':
-	"""
+	
 	reloadExportedData()
 	"""
 	train_images = 400
@@ -374,8 +377,8 @@ if __name__ == '__main__':
 	train_set_x = train_set_x_flatten/255
 
 	#Parameters to change
-	param_lambda = [0.0001, 0.0003, 0.0006, 0.0009, 0.001, 0.003, 0.006, 0.009, 0.01, 0.03, 0.06, 0.09, 0.1]
-	param_iterations = [300000]
+	param_lambda = [0.00001, 0.00003, 0.00006, 0.00009, 0.0001, 0.0003, 0.0006, 0.0009, 0.001]
+	param_iterations = [500000]
 	param_lambda_counter = 0
 	param_iterations_counter = 0
 
@@ -428,7 +431,7 @@ if __name__ == '__main__':
 					b = b,
 					param_lambda = param_lambda[param_lambda_counter]
 				)
-	
+	"""
 
 
 
